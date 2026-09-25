@@ -31,8 +31,17 @@ from rekordbox_gen import (
 )
 
 
-def mixxx_cuepos_to_ms(cuepos: int, samplerate: int, channels: int):
-    return int((cuepos * 1000.0) / (samplerate * channels))
+# Mixxx stores cue positions relative to the engine channel count, not the file's channel count
+# https://github.com/mixxxdj/mixxx/blob/bcfb7956315e64d383c570dcb9e79a06a883e335/src/audio/frame.h#L58
+#   double engineSamplePos = value() * mixxx::kEngineChannelOutputCount;
+# https://github.com/mixxxdj/mixxx/blob/bcfb7956315e64d383c570dcb9e79a06a883e335/src/engine/engine.h#L7-L8
+#   static constexpr audio::ChannelCount kEngineChannelOutputCount =
+#     audio::ChannelCount::stereo();
+MIXXX_ENGINE_CHANNELS = 2
+
+
+def mixxx_cuepos_to_ms(cuepos: int, samplerate: int):
+    return int((cuepos * 1000.0) / (samplerate * MIXXX_ENGINE_CHANNELS))
 
 
 def get_track_info(
@@ -110,7 +119,6 @@ def get_track_info(
 def get_cue_points(
     track_id: str,
     samplerate: int,
-    channels: int,
 ) -> list[CuePoint]:
     return [
         CuePoint(
@@ -119,12 +127,10 @@ def get_cue_points(
             mixxx_cuepos_to_ms(
                 int(cue_position),
                 samplerate,
-                channels,
             ),
             mixxx_cuepos_to_ms(
                 int(cue_position) + int(length),
                 samplerate,
-                channels,
             ),
             CueColour(hex(color)),
             label,
@@ -159,7 +165,7 @@ def get_exported_track(
         track_context=track_context,
         beat_grid=beat_grid,
         cue_points=get_cue_points(
-            track_id, track_context.samplerate, track_context.channels
+            track_id, track_context.samplerate
         ),
     )
 
