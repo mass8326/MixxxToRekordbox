@@ -79,6 +79,9 @@ def get_offset_ms(
 ) -> int:
     in_format = Path(source_path).suffix
     out_format = Path(track_path).suffix
+    # Stem files are MP4 containers like .m4a, but need half the offset
+    if Path(track_path).name.lower().endswith((".stem.m4a", ".stem.mp4")):
+        return 24
     if out_format == ".m4a":
         return 48
     elif in_format == out_format == ".mp3":

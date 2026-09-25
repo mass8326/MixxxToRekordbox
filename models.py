@@ -291,10 +291,12 @@ class ExportedTrack:
             cue_point.cue_color.hex_rgb = SERATO_COLOURS[
                 len(self.cue_points) % len(SERATO_COLOURS)
             ]
-        cue_point.cue_position += self.offset_sec
+        # Cue positions are in ms, offset_sec is in seconds
+        offset_ms = self.offset_sec * 1000
+        cue_point.cue_position += offset_ms
         cue_point.cue_position = max(0, cue_point.cue_position)
         if cue_point.cue_type == 4: # Loop Hot Cue
-            cue_point.cue_end += self.offset_sec
+            cue_point.cue_end += offset_ms
             cue_point.cue_end = max(0, cue_point.cue_end)
 
         self.cue_points.append(cue_point)
